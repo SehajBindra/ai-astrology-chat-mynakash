@@ -56,7 +56,7 @@ function positionOf(joinsPrevious: boolean, joinsNext: boolean): GroupPosition {
  * renders: date separators are inserted between days, and each message gets
  * a group position used to collapse avatars, spacing and bubble corners.
  *
- * Pure and framework-free so it is cheap to memoize and easy to unit test.
+ * Pure and framework-free so it is cheap to memoize.
  */
 export function buildTimeline(
   messages: readonly Message[],

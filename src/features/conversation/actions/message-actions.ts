@@ -17,7 +17,7 @@ const ACTIONS: Record<MessageActionId, MessageAction> = {
   retry: { id: 'retry', label: 'Retry sending', icon: 'retry' },
 };
 
-/** Which long-press actions a message supports. Pure, so it is unit tested. */
+/** Which long-press actions a message supports. */
 export function getMessageActions(message: Message): MessageAction[] {
   switch (message.type) {
     case 'ai':

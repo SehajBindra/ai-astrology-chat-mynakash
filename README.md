@@ -21,12 +21,11 @@ Prerequisites: Node ≥ 22.11, [bun](https://bun.sh), Xcode (iOS) with CocoaPods
 ```sh
 bun install
 
-# iOS
-bundle install          # first time only, installs CocoaPods
-bun run pods            # pod install
+# iOS (assumes ios/ exists locally, see note below)
+cd ios && pod install && cd ..
 bun run ios
 
-# Android
+# Android (assumes android/ exists locally, see note below)
 bun run android
 ```
 
@@ -37,6 +36,10 @@ Metro starts automatically. To start it yourself, run `bun start`.
 | `bun run typecheck` | `tsc --noEmit` |
 | `bun run lint` | ESLint (`@react-native` config) |
 | `bun run uniwind:types` | Regenerates `src/uniwind-types.d.ts` (Metro also does this on start) |
+
+### Why ios/ and android/ are not committed
+
+`/ios` and `/android` are intentionally gitignored: they are React Native CLI template output, not hand-written source, and they pull in large machine-specific artifacts (`Pods/`, `build/`, `.gradle/`). The reviewable surface for this assignment is the JS/TS source plus the product demo video above. A fresh clone therefore cannot run `bun run ios` / `bun run android` until the native projects are regenerated locally with the pinned `@react-native-community/cli` (20.1.0) followed by `install-expo-modules` (SDK 57). There is intentionally no `Gemfile` in the repo — iOS dependencies are installed with a plain `pod install` via CocoaPods, not Bundler.
 
 ### Why a CLI project contains Expo modules
 
@@ -132,7 +135,7 @@ replyToId: string | null
 isAssistantTyping: boolean
 ```
 
-- **Normalized messages.** Rows select `messagesById[id]`, so a status change on one message re-renders only that row, not the timeline.
+- **Normalized messages.** Rows select `messagesById[id]` through per-message selectors, so React re-renders stay scoped to the affected row (rows are `memo` components). Strictly speaking, the memoized timeline array itself is rebuilt on any `messagesById` change — but that rebuild does not re-render unaffected rows.
 - **The store is built by `createConversationStore({ api })`.** It depends only on the `ConversationApi` interface, so a mock or fake API can be passed in. Swapping the mock for a real HTTP or socket client doesn't touch any component.
 - **Optimistic send.** The message is added immediately with a client id and `status: 'sending'`. It becomes `sent` or `failed` when the API responds. The client id stays the list key, so the row isn't re-mounted on acknowledgement. `retryMessage()` resends a failed message under the same id. If a message is deleted while its request is in flight, the late response is ignored.
 - **Delete** removes the message and its feedback, and clears a pending reply to it. Quotes of a deleted message show "Original message was deleted".
