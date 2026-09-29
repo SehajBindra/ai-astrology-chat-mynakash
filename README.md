@@ -19,31 +19,50 @@ A React Native chat screen where AI replies can carry interactive recommendation
 Prerequisites: Node ≥ 22.11, [bun](https://bun.sh), Xcode (iOS) with CocoaPods, and/or Android Studio with an emulator.
 
 ```sh
-bun install
+# Install JS dependencies and iOS pods
+bun run setup
 
-# iOS (assumes ios/ exists locally, see note below)
-cd ios && pod install && cd ..
-bun run ios
+# Start Metro (terminal 1)
+bun start
 
-# Android (assumes android/ exists locally, see note below)
+# iOS (terminal 2)
+bun run ios:sim
+
+# Android (terminal 2, with an emulator already running)
 bun run android
 ```
 
-Metro starts automatically. To start it yourself, run `bun start`.
+`bun run ios` / `bun run android` also start Metro automatically if it isn't running.
 
 | Script | What it does |
 | --- | --- |
+| `bun run setup` | `bun install` + `pod install` |
+| `bun run ios:sim` | Runs on the "iPhone 16 Pro" simulator |
+| `bun run ios:fresh` | Deletes `ios/build` and `ios/Pods`, reinstalls pods, then runs on the simulator |
+| `bun run start:reset` | Starts Metro with a cleared cache |
+| `bun run clean:android` | `./gradlew clean` |
 | `bun run typecheck` | `tsc --noEmit` |
 | `bun run lint` | ESLint (`@react-native` config) |
+| `bun run check` | Typecheck + lint |
 | `bun run uniwind:types` | Regenerates `src/uniwind-types.d.ts` (Metro also does this on start) |
 
-### Why ios/ and android/ are not committed
+### Native projects (ios/ and android/)
 
-`/ios` and `/android` are intentionally gitignored: they are React Native CLI template output, not hand-written source, and they pull in large machine-specific artifacts (`Pods/`, `build/`, `.gradle/`). The reviewable surface for this assignment is the JS/TS source plus the product demo video above. A fresh clone therefore cannot run `bun run ios` / `bun run android` until the native projects are regenerated locally with the pinned `@react-native-community/cli` (20.1.0) followed by `install-expo-modules` (SDK 57). There is intentionally no `Gemfile` in the repo — iOS dependencies are installed with a plain `pod install` via CocoaPods, not Bundler.
+This is a bare React Native CLI app, so `ios/` and `android/` are committed source, as in the standard RN template. Unlike Expo prebuild, no tool here regenerates them from config, and they contain edits made by `install-expo-modules`. Build output and machine-specific files (`Pods/`, `build/`, `.gradle/`, `local.properties`) stay gitignored, so run `pod install` (or `bun run setup`) after cloning. The iOS deployment target is 16.4, which Expo SDK 57 requires.
+
+There is intentionally no `Gemfile` in the repo. iOS dependencies are installed with a plain `pod install` via CocoaPods, not Bundler.
 
 ### Why a CLI project contains Expo modules
 
-HeroUI Native depends on `expo-blur`, and Uniwind's Metro integration depends on `expo/metro-config`. The project was created with the React Native Community CLI, and then `install-expo-modules` (SDK 57, which matches RN 0.86.3) added Expo modules support. It is still a bare CLI app: you run it with `react-native run-ios` / `run-android`, not Expo Go. The only Expo packages in use are `expo-blur`, `expo-clipboard` and `expo-haptics`.
+HeroUI Native depends on `expo-blur`, and Uniwind's Metro integration depends on `expo/metro-config`. The project was created with the React Native Community CLI (20.1.0), and then `install-expo-modules` added Expo modules support.
+
+If you ever need to re-run it (for example after regenerating the native projects), pin the version:
+
+```sh
+npx install-expo-modules@0.18.1 --sdk-version 57.0.0
+```
+
+`install-expo-modules@latest` (0.16.0) only knows up to SDK 56 / RN 0.85 and fails on RN 0.86.3 with "Unable to find compatible Expo SDK version". It is still a bare CLI app: you run it with `react-native run-ios` / `run-android`, not Expo Go. The only Expo packages in use are `expo-blur`, `expo-clipboard` and `expo-haptics`.
 
 ### Demoing every state
 
